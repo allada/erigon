@@ -835,13 +835,23 @@ func (ss *GrpcServer) SendMessageToRandomPeers(ctx context.Context, req *proto_s
 
 	// Send the block to a subset of our peers
 	sendToAmount := int(math.Sqrt(float64(amount)))
-	i := 0
+	randNumsMap := make(map[int]bool, sendToAmount)
+	for i := 0; i < sendToAmount; ++i {
+		randNumsMap[rand.Intn(amount)] = true
+	}
+	peerIndex := -1
+	sentCount := 0
 	var lastErr error
 	ss.rangePeers(func(peerInfo *PeerInfo) bool {
+		peerIndex++
+		// Only run on peers that index our random numbers.
+		if !randNumsMap[peerIndex] {
+			return
+		}
 		ss.writePeer("sendMessageToRandomPeers", peerInfo, msgcode, req.Data.Data, 0)
 		reply.Peers = append(reply.Peers, gointerfaces.ConvertHashToH512(peerInfo.ID()))
-		i++
-		return i < sendToAmount
+		sentCount++
+		return sentCount < sendToAmount
 	})
 	return reply, lastErr
 }

@@ -120,6 +120,7 @@ var rootCmd = &cobra.Command{
 
 		cfg.DBDir = dirs.TxPool
 		cfg.CommitEvery = 30 * time.Second
+		cfg.ProcessRemoteTxsEvery = 1 * time.Millisecond
 		cfg.PendingSubPoolLimit = pendingPoolLimit
 		cfg.BaseFeeSubPoolLimit = baseFeePoolLimit
 		cfg.QueuedSubPoolLimit = queuedPoolLimit

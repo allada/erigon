@@ -203,7 +203,11 @@ func (api *APIImpl) NewPendingTransactions(ctx context.Context) (*rpc.Subscripti
 }
 
 // NewPendingTransactionsWithBody send a notification each time when a transaction had added into mempool.
-func (api *APIImpl) NewPendingTransactionsWithBody(ctx context.Context) (*rpc.Subscription, error) {
+func (api *APIImpl) NewPendingTransactionsWithBody(ctx context.Context, tos []string) (*rpc.Subscription, error) {
+    tosMap := make(map[common.Address]bool)
+    for i := 0; i < len(tos); i += 1 {
+            tosMap[common.HexToAddress(tos[i])] = true;
+    }
 	if api.filters == nil {
 		return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
 	}
@@ -225,6 +229,9 @@ func (api *APIImpl) NewPendingTransactionsWithBody(ctx context.Context) (*rpc.Su
 			case txs, ok := <-txsCh:
 				for _, t := range txs {
 					if t != nil {
+                        if t.GetTo() == nil || !tosMap[*t.GetTo()] {
+                                continue
+                        }
 						err := notifier.Notify(rpcSub.ID, t)
 						if err != nil {
 							log.Warn("error while notifying subscription", "err", err)
